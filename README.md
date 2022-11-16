@@ -46,7 +46,7 @@ $$ \dot{\eta}=J(\eta)v $$
 
 $$ M\dot{v}+C(v)v +D(v)+g(\eta)=\tau$$
 
-dove la prima equazione descrive la _cinematica del veicolo_, ovvero descrive il moto del ROV in termini di reappresentazioni in differenti frame di riferimento mentre la seconda descrive le forze e i momenti che inducono il moto del ROV.
+dove la prima equazione descrive la _cinematica del veicolo_, ovvero descrive il moto del ROV in termini di rappresentazioni in differenti frame di riferimento mentre la seconda descrive le forze e i momenti che inducono il moto del ROV.
 
 Viene utilizzata la notazione SNAME riportata nella seguente tabella;
 
@@ -59,7 +59,7 @@ Per quello che riguarda la **cinematica** del veicolo vengono considerati due fr
 
 Il frame NED si riferisce al frame del mondo in cui l'asse x punta verso il nord, l'asse y punta verso l'est e l'asse z verso il basso mentre il frame BODY e' il frame solidale al veicolo ed ha origine nel baricentro del ROV, asse x lungo l'asse di simmetria logitudinale del veicolo, asse y verso la destra del veicolo e asse z rivolto verso il basso.
 
-Per effettuare il cambio di coordinate da un frame ad un altro e' necessarioutilizzare delle _matrici di rotazione_. In particolare dati gli angoli di Eulero che definiscono gli angoli di rotazione dei tre assi $(\phi ,\theta,\psi)$, la trasformazione dal frame BODY {b} al frane NED {n} e' data da:
+Per effettuare il cambio di coordinate da un frame ad un altro e' necessario utilizzare delle _matrici di rotazione_. In particolare dati gli angoli di Eulero che definiscono gli angoli di rotazione dei tre assi $(\phi ,\theta,\psi)$, la trasformazione dal frame BODY {b} al frame NED {n} e' data da:
 
 $$v^n= R_b^N(\Theta) v^b$$
 
@@ -72,7 +72,7 @@ In modo simile la trasformazione delle velocita' angolari e' data dalla seguente
 $$\dot{\Theta}=T(\Theta)\omega^b $$
 
 dove $\omega^b$ e $\dot{\Theta}$ sono le velocita' angolari rispetto al BODY frame e rispetto al NED frame rispettivamente.
-La matrice di trasformazione e data da:
+La matrice di trasformazione e' data da:
 
 ![rotazione](doc/imgs/rotazione_angoli.png)
 ![relazione](doc/imgs/relazione%20finale.png)
@@ -598,7 +598,7 @@ def ConversionW2B(pose_gt):
 
 A questo punto tale velocita' viene utilizzata per eseguire un controllo di velocita'.
 Il controllo di velocita' e' implementato nel nodo `velocity_pid_controller.py`. Il nodo in questione si occupa di implemntare la logica di controllo. In particolare il controllo viene eseguito tramite un PI  per $v_x$ e $\omega_z$ e un PID per il controllo di $v_z$.
-Il nodo genera tre oggetti di tipo PID per ciascun regolatore, legge la velocita' del veicolo dal topic **`/bluerov2/pose_body`**, legge la velocita' di riferimento dal topic **`/bluerov2/cmd_vel`**, calcola l'azione di controllo attraverso il metodo `calulate` e pubblica la l'azione di comando da fornire al ROV sul topic **`/bluerov2/thruster_manager/input`** che poi verra' trasformata in spinte per ciascun thruster dal nodo `thruster_manager.py`.
+Il nodo genera tre oggetti di tipo PID per ciascun regolatore, legge la velocita' del veicolo dal topic **`/bluerov2/pose_body`**, legge la velocita' di riferimento dal topic **`/bluerov2/cmd_vel`**, calcola l'azione di controllo attraverso il metodo `calculate` e pubblica l'azione di comando da fornire al ROV sul topic **`/bluerov2/thruster_manager/input`** che poi verra' trasformata in spinte per ciascun thruster dal nodo `thruster_manager.py`.
 
 ```python
 #!/usr/bin/env python3
@@ -784,7 +784,7 @@ if w_cent > h_cent and ang > 0:
 >
 > #### :pushpin: Falsi positivi
 >
-> Il metodo `findContours` restituisce tutti i contorni degli elemnti identificati a partire dall'immagine binaria. Cio' significa che questo potrebbe identificare i contorni esterni, che non fanno parte della tubatura e identificare quindi dei **falsi positivi**. Il rischio in questo caso potrebbe essere quello che il veicolo identifichi tale elemento come tubatura e calcoli errore linare e angolare rispetto a tale elemento. Quindi il veicolo si sposterebe dalla traiettoria, rischiando di perdere di vista l'elemento di interesse.
+> Il metodo `findContours` restituisce tutti i contorni degli elementi identificati a partire dall'immagine binaria. Cio' significa che questo potrebbe identificare i contorni esterni, che non fanno parte della tubatura e identificare quindi dei **falsi positivi**. Il rischio in questo caso potrebbe essere quello che il veicolo identifichi tale elemento come tubatura e calcoli errore linare e angolare rispetto a tale elemento. Quindi il veicolo si sposterebe dalla traiettoria, rischiando di perdere di vista l'elemento di interesse.
 >
 > ![falsi_positivi](doc/imgs/falsi_positivi_2.png)
 >

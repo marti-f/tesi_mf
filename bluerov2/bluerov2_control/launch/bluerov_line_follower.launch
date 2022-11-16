@@ -39,6 +39,6 @@
     <!--Line Detector-->
     <node name ="line_detector" pkg="bluerov2_control" type="line_detect.py"/>
     <!--Line Follower-->
-    <!-- <node name ="line_follower" pkg="bluerov2_control" type="line_follower.py"/>
-    -->
+    <node name ="line_follower" pkg="bluerov2_control" type="line_follower.py"/>
+ 
 </launch>
