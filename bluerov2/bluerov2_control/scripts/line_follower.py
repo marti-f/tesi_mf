@@ -91,9 +91,9 @@ class LineFollower:
         if self.detect:
             if abs(self.e_x) <= 10.5 and abs(self.e_theta) <= 22:
                 self.state = 'CENTER'
-            elif (self.e_x < -10.5 and abs(self.e_theta) <= 22) or (abs(self.e_x) <= 10.5 and self.e_theta < -22):
+            elif (self.e_x < -10.5 and (self.e_theta) <= 22) or (abs(self.e_x) <= 10.5 and self.e_theta < -22):
                 self.state = 'LEFT'
-            elif (self.e_x > 10.5 and abs(self.e_theta) <= 22) or (abs(self.e_x) <=10.5 and self.e_theta > 22):
+            elif (self.e_x > 10.5 and (self.e_theta) <= 22) or (abs(self.e_x) <=10.5 and self.e_theta > 22):
                 self.state = 'RIGHT'
             elif (self.e_x > 10.5 and self.e_theta < -22) or (self.e_x < -10.5 and self.e_theta > 22):
                 self.state = 'DISALIGNED'
