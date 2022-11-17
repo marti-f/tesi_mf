@@ -1,6 +1,5 @@
 
 <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-
 <script type="text/x-mathjax-config">
   MathJax.Hub.Config({ tex2jax: {inlineMath: [['$', '$']]},messageStyle: "none" });
 </script>
@@ -26,9 +25,8 @@ Il progetto in questione consiste nell' implementazione di un algoritmo di **lin
 Un **ROV (Remotely Operated underwater Vehicle)** e' un veicolo subacqueo comandato a distanza, noto anche come drone sottomarino. I ROV possono ispezionare il mondo subacqueo anche a profondita' maggiori rispetto ai cento metri.
 In genere sono costituiti da un certo numero di **thruster** che permettono il moto del veicolo e da una **telecamera** posta generalmente nella parte frontale.
 
-Una delle applicazioni nelle quali i ROV trovano utilizzo e nell'_ispezione e riparazione di oleodotti e condutture subacquee_.
-In tali contesti infatti risultano necessarie regolari ispezioni e eventuali riparazioni per evitare perdite e garantire una maggiore efficienza e sicurezza per le aree circostanti.
-In genere l'operazione avviene tramite comandi impartiti dall'utente a distanza. Tuttavia potrebbe essere utile gestire l'operazione tramite un _sistema di controllo_ in grado di ispezionare tali condutture in modo autonomo.
+Una delle applicazioni nelle quali i ROV trovano utilizzo e nell'**ispezione e riparazione di oleodotti e condutture subacquee**.
+In tali contesti infatti risultano necessarie regolari ispezioni e eventuali riparazioni per evitare o rilevare perdite e garantire una maggiore efficienza e sicurezza per le aree circostanti. A causa della complessita dell'ambiente marino, la ricerca e la localizzazione dei punti di perdita sono spesso complicate e difficili. In genere l'operazione avviene tramite comandi impartiti dall'utente a distanza. Tuttavia potrebbe essere utile gestire l'operazione tramite un _sistema di controllo_ che renda il ROV autonomo e in grado di ispezionare tali condutture in modo autonomo con strumenti e sensori opportuni.
 
 ![pipe_ispection](doc/imgs/pipeline_ispection.png)
 
@@ -38,13 +36,13 @@ Il **BlueROV2** e' un ROV  subacqueo prodotto dalla _BlueRobotics_. E' dotato in
 
 ![thruster_config](doc/imgs/bluerov2_confthruster.png)
 
-#### Modellazione matematica di un veicolo sottomarino
+### Modellazione matematica di un veicolo sottomarino
 
 Il moto di un veicolo sottomarino viene decritto dalle **equazioni di Fossen** (_Handbook of marine craft hydrodynamics and motion control, Fossen, 2011_), che decrivono la dinamica e la cinematica del veicolo tramite le seguenti equazioni:
 
 $$ \dot{\eta}=J(\eta)v $$
 
-$$ M\dot{v}+C(v)v +D(v)+g(\eta)=\tau$$
+$$ M\dot{v}+C(v)v +D(v)v+g(\eta)=\tau$$
 
 dove la prima equazione descrive la _cinematica del veicolo_, ovvero descrive il moto del ROV in termini di rappresentazioni in differenti frame di riferimento mentre la seconda descrive le forze e i momenti che inducono il moto del ROV.
 
@@ -79,34 +77,34 @@ La matrice di trasformazione e' data da:
 
 Per quanto riguarda le **equazioni dinamiche** del moto del ROV invece si ricavano a partire dalla formulazione di Newton Eulero:
 
-$$ M\dot{v}+C(v)v +D(v)+g(\eta)=\tau$$
+$$ M\dot{v}+C(v)v +D(v)v+g(\eta)=\tau$$
 
 dove $M$ e la matrice di inerzia del sistema, $C(v)$ rappresenta la matrice di Coriolis, $D(v)$ e' la matrice di smorzamento idrodinamico, $g(\eta)$ e' il vettore delle forze gravitazionali e di galleggiamento e $\tau$ e' il vettore delle forze e dei momenti esterni agenti sul ROV, mentre $v$ e' il vettore delle velocita' del veicolo rispetto al frame BODY.
 
-##### Matrice di allocazione
+### Matrice di allocazione
 
 Il vettore $\tau$ rappresenta il vettore delle forze e dei momenti esterni agenti sul baricentro del veicolo e puo' essere rappresentato come:
 
 $$ \tau = [F_x,F_y,F_z,M_x,M_y,M_z]'$$
 
-Le forze in questione dovranno essere generate a partire dai 6 thruster presenti sul veicolo che tramite la rotazione delle eliche genereranno una spinta $F$ proporzionale alla velocita' di rotazione. Indicando con $F_i$ la spinta generata dal thruster $i$-esimo e' possibile costruire il vettore di comando $F_{thr}$ come:
+Le forze in questione dovranno essere generate a partire dai 6 thruster presenti sul veicolo che tramite la rotazione delle eliche genereranno una spinta $F$ proporzionale alla velocita' di rotazione. Indicando con $T_i$ la spinta generata dal thruster $i$-esimo e' possibile costruire il vettore di comando $T_{thr}$ come:
 
-$$ F_{thr} =\left[ F_1,F_2,F_3,F_4,F_5,F_6\right]'$$
+$$ T_{thr} =\left[ T_1,T_2,T_3,T_4,T_5,T_6\right]'$$
 
 E' possibile pertanto scrivere la seguente relazione:
 
-$$\tau = T_{}(\alpha)F_{thr}$$
+$$\tau = B(\alpha)T_{thr}$$
 
-dove la matrice $T(\alpha)=[t_1,t_2,t_3,t_4,t_5,t_6]\in \R^{6x6}$ e' la **matrice di allocazione dei thruster** e permette di convertire il vettore delle forze agenti sul baricentro del veicolo nel vettore di comando da fornire a ciascun thruster e $\alpha$ rappresenta il vettore di rotazione angolare di ciascun thruster. Il generico elemento $t_i$ puo' essere calcolato a partire dalla configurazione dei thruster.
+dove la matrice $B(\alpha)=[b_1,b_2,b_3,b_4,b_5,b_6]\in {R}^{6x6}$ e' la **matrice di allocazione dei thruster** e permette di convertire il vettore delle forze agenti sul baricentro del veicolo nel vettore di comando da fornire a ciascun thruster e $\alpha$ rappresenta il vettore di rotazione angolare di ciascun thruster. Il generico elemento $b_i$ puo' essere calcolato a partire dalla configurazione dei thruster.
 
 ## UUV Simulator
 
 L' **Unmanned Underwater Vehicle Simulator** e' costituito da un set di package che includono Gazebo plugins e moduli ROS per la simulazione di veicoli subacquei.
 
-Tra le varie caratteristiche si hanno:
+Tra le varie funzionalità messe a disposizione dal simulatore ci sono:
 
 * La simulazione delle _equazioni del moto di Fossen_;
-* Plugin e moduli per la simulazione dei _thruster_;
+* Plugin e moduli per la simulazione e la gestione dei _thruster_;
 * Simulazione di modelli 3D per la _velocita' della corrente_;
 * Plugin per i _sensori_;
 * Modellazione di _mondi subaquei_.
@@ -120,6 +118,11 @@ Attualmente UUV Simulator e' rilasciato solo per le distribuzioni ROS kinetic,lu
 git clone https://github.com/arturmiller/uuv_simulator/tree/noetic
 git checkout noetic
 ```
+Nel caso specifico sono stati utilizzati due plugin:
+
+* **Underwater objetc plugin**
+* **Thruster plugin**
+* ** Thruster manager**
 
 ### Underwater object plugin
 
@@ -127,6 +130,11 @@ Il moto del veicolo viene simulato grazie al **UnderwaterObjectPlugin** che impl
 Il plugin deve essere specificato all' interno del file `.xacro` che contiene la descrizione del veicolo e devono essere specificate alcuni parametri necessari alla simulazione del veicolo in acqua, come la densita' dell'acqua, il topic sul quale viene pubblicata la velocita' della corrente e il modello idrodinamico del robot.
 
 ```xml
+
+<!-- Create the bluerov2 -->
+  <xacro:bluerov2_base namespace="$(arg namespace)">
+    <!-- The underwater object plugin  -->
+    <gazebo>
       <plugin name="uuv_plugin" filename="libuuv_underwater_object_ros_plugin.so">
         <fluid_density>1028.0</fluid_density>
         <flow_velocity_topic>hydrodynamics/current_velocity</flow_velocity_topic>
@@ -134,9 +142,11 @@ Il plugin deve essere specificato all' interno del file `.xacro` che contiene la
         <!-- Adding the hydrodynamic and hydrostatic parameters for the vehicle -->
         <xacro:bluerov2_hydro_model namespace="$(arg namespace)"/>
       </plugin>
+    </gazebo>
+  </xacro:bluerov2_base>
+  
 ```
-
-Il modello idrodinamico viene a sua volta definito nel file `gazebo.xacro`, riportato di seguito.
+Il modello idrodinamico viene a sua volta definito in una macro `"bluerov2_hydro_model"` nel file `gazebo.xacro`, riportato di seguito.
 
 ```xml
   <xacro:macro name="bluerov2_hydro_model" params="namespace">
@@ -185,7 +195,7 @@ Il modello idrodinamico viene a sua volta definito nel file `gazebo.xacro`, ripo
 Il **Thruster Plugin** permette di simulare la dinamica del thruster e implementa la relazione tra la velocita' angolare del thruster e la spinta generata in output. Questo viene reso possibile grazie all'utilizzo di due tag: _<dynamic_model>_ e _<conversion_function>_.
 
 Il primo implementa la **dinamica del thruster**, ovvero la relazione tra l'input del thruster e la velocita' di rotazione del thruster. Esistono diversi modelli messi a disposizione, ma nel caso specifico e' stato utilizzato il modello `FirstOrder` con constante di tempo pari a 0.2.
-Il secondo modulo invece implementa la **funzione di conversione**, ovvero la relazione tra la velocita' del rotore e la spinta generata in output. Anche in questo caso vengono messi a dispozione diversi modelli, in questo caso e' stato utilizzato il modello `Basic`, che approssima tale relazione ad una relazione proporzionale.
+Il secondo modulo invece implementa la **funzione di conversione**, ovvero la relazione tra la velocita' del rotore e la spinta generata in output. Anche in questo caso vengono messi a dispozione diversi modelli, in questo caso e' stato utilizzato il modello `Basic`, che approssima la spinta del thruster al quadrato della velocità di rotazione.
 Nella figura seguente vengono riportati i modelli `FirstOrder` a sinistra e `Basic` a destra.
 
 ![first_order](doc/imgs/thruster_plugin_model.png)
@@ -228,17 +238,7 @@ Il plugin Gazebo in questo caso va specificato nel tag `<gazebo>` della macro de
        <thrusterID>${thruster_id}</thrusterID>
        <!-- Gain of the input command signal -->
        <gain>1</gain>
-       <!--
-       Value from 0 to 1 to set the efficiency of the output thrust force
-       Default value is 1.0
-       -->
        <thrust_efficiency>1</thrust_efficiency>
-       <!--
-       Value from 0 to 1 to set the efficiency of the propeller as a factor
-       to be multiplied to the current value of the state variable at each
-       iteration.
-       Default value is 1.0
-       -->
        <propeller_efficiency>1</propeller_efficiency>
 
        <!-- 2) First order model -->
@@ -250,7 +250,6 @@ Il plugin Gazebo in questo caso va specificato nel tag `<gazebo>` della macro de
        <conversion>
          <type>Basic</type>
          <rotorConstant>0.0001</rotorConstant>
-         <!-- <rotorConstant>0</rotorConstant> -->
        </conversion>
 
      </plugin>
@@ -266,6 +265,9 @@ Il plugin Gazebo in questo caso va specificato nel tag `<gazebo>` della macro de
 ### Thruster manager
 
 Il simulatore consente inoltre la generazione automatica della **matrice di allocazione** o **TAM (Thruster Allocation Matrix)**. Questo viene reso possibile grazie al package `uuv_thruster_manager` che permette di generare automaticamente la TAM e converte il vettore delle forze di comando in spinte per i singoli thruster.
+
+Per effettuare questo è necessario che ogni thruster abbia un proprio frame di riferimento, in modo tale che la ricerca della matrice di allocazione possa essere esefuta tramite le informazioni provenienti dal trasformation system `\tf`.
+
 Tramite il comando:
 
 ```bash
@@ -287,13 +289,20 @@ thruster_manager:
   ##################################################
   # Thruster Model
   ##################################################
-  # Conversion function :
+  # 1) If all thrusters have the same model (as described in the vehicle's robot description)
+  #
+  # 1.1) If the conversion function set for the thruster plugins is the following:
+  # <conversion>
+  #   <type>Basic</type>
+  #   <rotorConstant>0.0</rotorConstant>
+  # </conversion>
+  # You can set the conversion function to be:
   conversion_fcn: proportional
   conversion_fcn_params:
-    gain: 0.026546960744430276 
+    gain: 0.026546960744430276 # <rotorConstant>
 ```
 
-Inoltre sempre all'interno di tale package e' presente un file `start_thruster_manager.launch` che genera la matrice di allocazione, la salva nel file `tam.yaml` e avvia il nodo `thruster_manager` che permette la conversione del vettore delle forze sul veicolo **$\tau$** in spinte da generare su ciascun thruster **$F_{thr}$**.
+Inoltre sempre all'interno di tale package e' presente un file `start_thruster_manager.launch` che genera la matrice di allocazione, la salva nel file `tam.yaml` e avvia il nodo `thruster_manager` che permette la conversione del vettore delle forze sul veicolo **$\tau$** in spinte da generare su ciascun thruster **$T$**.
 
 ## Modello gazebo per BlueROV2
 
@@ -308,7 +317,7 @@ Ai fini del progetto tuttavia sono stati utili solo due pacchetti, in particolar
 
 ### Bluerov2_description
 
-Il package **bluerov2_description** contiene gli `urdf` per la creazione del modello e il file launch per lo spawn del veicolo nel mondo Gazebo.
+Il package **bluerov2_description** contiene gli `urdf` per la creazione del modello e il file launch per l'inserimento del veicolo nel mondo Gazebo.
 Nella directory **urdf** sono presenti i file:
 
 * `snippets.xacro`
@@ -322,16 +331,9 @@ xacro di interesse:
 
 ```xml
 <xacro:property name="prop_mesh_file" value="file://$(find bluerov2_description)/meshes/bluerov2_propcw.dae"/>
-  <!--
-    Thruster macro with integration of joint and link. The thrusters should
-    be initialized in the actuators.xacro file.
-  -->
+<!-- MACRO THRUSTER -->
+  <!--Thruster macro with integration of joint and link. The thrusters should be initialized in the actuators.xacro file. -->
   <xacro:macro name="thruster_macro" params="robot_namespace thruster_id *origin">
-    <!--
-    Dummy link as place holder for the thruster frame,
-    since thrusters can often be inside the collision geometry
-    of the vehicle and may cause internal collisions if set otherwise
-    -->
     <link name="${robot_namespace}/thruster_${thruster_id}">
 
       <visual>
@@ -369,40 +371,26 @@ xacro di interesse:
        <thrusterID>${thruster_id}</thrusterID>
        <!-- Gain of the input command signal -->
        <gain>1</gain>
-       <!--
-       Value from 0 to 1 to set the efficiency of the output thrust force
-       Default value is 1.0
-       -->
        <thrust_efficiency>1</thrust_efficiency>
-       <!--
-       Value from 0 to 1 to set the efficiency of the propeller as a factor
-       to be multiplied to the current value of the state variable at each
-       iteration.
-       Default value is 1.0
-       -->
-       <propeller_efficiency>1</propeller_efficiency>
-
+       <propeller_efficiency>1</propeller_efficiency>       
        <!-- 2) First order model -->
        <dynamics>
          <type>FirstOrder</type>
          <timeConstant>0.2</timeConstant>
        </dynamics>
-
        <conversion>
          <type>Basic</type>
          <rotorConstant>0.0001</rotorConstant>
          <!-- <rotorConstant>0</rotorConstant> -->
        </conversion>
-
      </plugin>
    </gazebo>
-
     <gazebo reference="${robot_namespace}/thruster_${thruster_id}">
       <selfCollide>false</selfCollide>
     </gazebo>
-
   </xacro:macro>
-
+  
+<!-- MACRO CAMERA -->
   <xacro:macro name="bluerov_camera" params="namespace parent_link suffix *origin">
     <xacro:regular_camera_plugin_macro
       namespace="${namespace}"
@@ -411,9 +399,12 @@ xacro di interesse:
       topic="camera"
       mass="0.001"
       update_rate="30"
+      <!-- Campo visivo orizzontale -->
       hfov="1.5125"
+      <!-- Dimensioni dell'immagine -->
       width="1920"
       height="1080"
+      <!-- Rumore -->
       stddev="0.01"
       scale="1.0">
       <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001" />
@@ -422,7 +413,7 @@ xacro di interesse:
   </xacro:macro>
 ```
 
-Nel file `actuator.xacro` vengono aggiunte le 6 unita' dei thruster.
+Nel file `actuator.xacro` vengono dichiarate le 6 unita' dei thruster.
 
 ```xml
   <!-- Thruster0 -->
@@ -478,25 +469,27 @@ Nella directory **launch** invece e' presente il file `upload.launch` che avvia 
 
 ### Bluerov2_control
 
-Il package **bluerov2_control** invece contiene i file per la generazione della matrice di allocazione e il file launch per l' avvio del thruster manager.
-All'interno di tale package sono stati poi aggiunti i nodi necessari all' implementazione dell' algoritmo di line following.
+Il package **bluerov2_control** invece contiene i file per la generazione della matrice di allocazione e il file launch per l'avvio del thruster manager.
+All'interno di tale package sono stati poi aggiunti i nodi necessari all'implementazione dell'algoritmo di line following.
 
 La logica di controllo prevede l'implementazione di due loop di controllo come mostrato in figura:
 
 ![logica_controllo](doc/imgs/logicaControllo.png)
 
 Il loop interno implementa un **controllo sulla velocita del veicolo**, in particolare sulla velocita' di traslazione lungo l'asse x $v_x$ e lungo l'asse z $v_z$ e sulla velocita' angolare su z $\omega_z$.
-Il loop piu' esterno invece implementa la parte di **visione artificiale** e calcola a partire dall'errore lineare $e_x$ e angolare  $e_\theta$ i valori di velocita' da fornire al robot.
+Il loop piu' esterno invece implementa la parte di **visione artificiale** e calcola a partire dall'errore lineare $e_x$ e angolare  $e_\theta$ i valori di riferimento di velocita' da fornire al robot.
 
-#### Controllo di velocita' del ROV
+### Controllo di velocita' del ROV
 
 Il primo passo al fine di poter eseguire il line following e' quello di implementare un **controllo di velocita'**.
 Al fine di poter comandare il BlueROV e' necessario fornire in input le spinte che i singoli thruster devono generare in modo tale da permettere la traslazione e la rotazione lungo i tre assi.
-Il generico thruster $i$ genera una spinta $F_i$. Quindi il BlueROV riceve in input il vettore $[F_0,F_1,F_2,F_3,F_4,F_5]$.
+Il generico thruster $i$ genera una spinta $T_i$. Quindi il BlueROV riceve in input il vettore $[T_0,T_1,T_2,T_3,T_4,T_5]$.
 
-Tuttavia grazie al `thruster_manager` e' possibile generare la matrice di allocazione e convertire le forze e le coppie agenti sul centro di gravita' del veicolo $[F_x,F_y,F_z,M_x,M_y,M_z]^T$ in spinte di ciascun thruster $[T_0,T_1,T_2,T_3,T_4,T_5]$.
+Tuttavia grazie al `thruster_manager` e' possibile generare la matrice di allocazione e convertire le forze e le coppie agenti sul baricentro del veicolo $[F_x,F_y,F_z,M_x,M_y,M_z]^T$ in spinte di ciascun thruster $[T_0,T_1,T_2,T_3,T_4,T_5]$.
 
-Nel caso specifico tuttavia non e' stato necessario implementare un controllo di velocita' per tutti e 6 i gdl ma e' stato sufficiente implementare il controllo sulla velocita' di traslazione lungo l'asse x $v_x$ e lungo l'asse z $v_z$ e la velocita di rotazione rispetto all'asse x ${\omega}_z$ come mostrato in figura:
+Nel caso specifico è stato sufficiente implementare il controllo sulla velocita' di traslazione lungo l'asse x $v_x$ e lungo l'asse z $v_z$ e sulla velocita di rotazione rispetto all'asse z ${\omega}_z$.
+
+I nodi implementati sono due e l'architettura ROSè riportata nella seguente figura:
 
 ![controllo_velocita'](doc/imgs/velocity_ros.png)
 
@@ -534,6 +527,7 @@ class world_to_body_transform:
 
   # -------   CALLBACK   -------
   def vel_world_callback(self, msg):
+    # Conversione di coordinate
     vel_body = conv.ConversionW2B(msg)
     # Pubblicazione sul topic 
     self.vel_body_pub.publish(vel_body)
@@ -565,10 +559,10 @@ def ConversionW2B(pose_gt):
     euler = tf.transformations.euler_from_quaternion(quaternion)
     [roll, pitch, yaw] = [euler[0], euler[1],euler[2]]
         
-    # Calcolo della matrice di rotazione dal frame body al frame world
+    # Calcolo della matrice di rotazione delle velocità lineari dal frame body al frame world
     R = np.array([[math.cos(yaw)*math.cos(pitch), -math.sin(yaw)*math.cos(roll)+math.cos(yaw)*math.sin(pitch)*math.sin(roll), math.sin(yaw)*math.sin(roll)+math.cos(yaw)*math.cos(roll)*math.cos(pitch)],[math.sin(yaw)*math.cos(pitch), math.cos(yaw)*math.cos(roll)+math.sin(roll)*math.sin(pitch)*math.sin(yaw),- math.cos(yaw)*math.sin(roll)+math.sin(pitch)*math.sin(yaw)*math.cos(roll)],[-math.sin(pitch), math.cos(pitch)*math.sin(roll), math.cos(pitch)*math.cos(roll)]])
 
-    # Matrice di trasformazione angolare dal frame body al frame world
+    # Matrice di trasformazione delle velocità angolari dal frame body al frame world
     T = np.array([[1,math.sin(roll)*math.tan(pitch),math.cos(roll)*math.tan(pitch)],[0,math.cos(roll),-math.sin(roll)],[0, math.sin(roll)/math.cos(pitch),math.cos(roll)/math.cos(pitch)]])
         
     # Matrice di trasformazione delle velocita` dal frame world a body`
@@ -581,9 +575,11 @@ def ConversionW2B(pose_gt):
 
     # vettore delle velocita` angolari
     vel_a_world_array = np.array([vel_w.angular.x,vel_w.angular.y,vel_w.angular.z])
+    
+    # Inversione di coordinate
     vel_l_body = np.dot(R_1,vel_l_world_array)
     vel_a_body = np.dot(T_1,vel_a_world_array)
-
+    
     vel_body = Odometry()
     vel_body.twist.twist.linear.x = vel_l_body[0]
     vel_body.twist.twist.linear.y = vel_l_body[1]
@@ -597,7 +593,7 @@ def ConversionW2B(pose_gt):
 ```
 
 A questo punto tale velocita' viene utilizzata per eseguire un controllo di velocita'.
-Il controllo di velocita' e' implementato nel nodo `velocity_pid_controller.py`. Il nodo in questione si occupa di implemntare la logica di controllo. In particolare il controllo viene eseguito tramite un PI  per $v_x$ e $\omega_z$ e un PID per il controllo di $v_z$.
+Il controllo di velocita' e' implementato nel nodo `velocity_pid_controller.py`. Il controllo viene eseguito tramite un PI  per $v_x$ e $\omega_z$ e un PID per il controllo di $v_z$.
 Il nodo genera tre oggetti di tipo PID per ciascun regolatore, legge la velocita' del veicolo dal topic **`/bluerov2/pose_body`**, legge la velocita' di riferimento dal topic **`/bluerov2/cmd_vel`**, calcola l'azione di controllo attraverso il metodo `calculate` e pubblica l'azione di comando da fornire al ROV sul topic **`/bluerov2/thruster_manager/input`** che poi verra' trasformata in spinte per ciascun thruster dal nodo `thruster_manager.py`.
 
 ```python
@@ -612,9 +608,9 @@ import rospy
 
 class VelocityPIDController:
 
-
     def __init__(self):
         rospy.init_node('velo_PID_controller')
+        
     # ------- PARAMETERS ------- 
         self.freq = rospy.get_param('/gazebo/freq', 100)
         self.rate = rospy.Rate(self.freq)
@@ -654,8 +650,7 @@ class VelocityPIDController:
   # -------   CALLBACK   -------
     def read_pose_callback(self, msg):
         self.v_meas = msg.twist.twist
-      
-
+     
     def cmd_vel_callback(self,msg):
         self.v_ref = msg
 
@@ -686,6 +681,7 @@ class PID:
         self.Sk += ek*self.Tc
         uk = self.Kp*ek +self.Ki*self.Sk +self.Kd*(ek-self.ek_1)/self.Tc
         self.ek_1 = ek
+        # Anti Wind-Up
         if abs(uk) >= self.u_max:
             self.Sk -= ek*self.Tc
             return (uk/abs(uk))*self.u_max
@@ -716,32 +712,34 @@ float64 linear
 float64 angular
 bool rect_detected
 ```
+L'obiettivo è quello di calcolare gli errori di orientamento a partire dal rettangolo che racchiude i contorni della pipeline. Quindi inizialmente verranno identificati i contorni della pipeline, poi verrà costruito il box contenente tali contorni e infine verrà calcolato l'errore lineare e l'errore angolare rispetto a tale rettangolo. A tal fine sono state utilizzate gli strumenti messi a disposizione dalla libreria **OpenCV**.
 
 L'immagine proveniente dal topic **`/bluerov2/camera_front/camera_image`** che ha dimensioni 1080x1920 viene ridimensionata e ritagliata. In particolare al fine dell'implementazione dell'algoritmo e' necessario e anche conveniente utilizzare solo la parte piu' bassa dell'immagine, poiche' e'quella piu' prossima al ROV.
 
-L'obiettivo e' quello di andare a ricavare i **contorni** della pipeline pertanto viene rimosso il rumore tramite un filtro. In questo caso e' stato utilizzato un _filtro Gaussiano_ specificando la dimensione del kernel e la deviazione rispetto a x e y.
-
 ```python
-# Conversione dell'immagine ROV in formato OpenCV
-        img_CV = self.bridge.imgmsg_to_cv2(msg,desired_encoding='passthrough')
+# Conversione dell'immagine della camera del ROV in formato OpenCV
+img_CV = self.bridge.imgmsg_to_cv2(msg,desired_encoding='passthrough')
 
-        # Diminuisco le dim. dell'immagine del 50% 
-        dim_x = int(1920*0.5)
-        dim_y = int(1080*0.5)
-        dim =(dim_x,dim_y)
-        img_BGR = cv2.resize(img_CV,dim,interpolation=cv2.INTER_AREA)
-        img_RGB = cv2.cvtColor(img_BGR,cv2.COLOR_BGR2RGB)
-        img_RGB =img_RGB[180:dim_y,0:dim_x]
-        img_RGB = cv2.GaussianBlur(img_RGB,(5,5),0)
+# Diminuisco le dim. dell'immagine del 50% 
+dim_x = int(1920*0.5)
+dim_y = int(1080*0.5)
+dim =(dim_x,dim_y)
+img_BGR = cv2.resize(img_CV,dim,interpolation=cv2.INTER_AREA)
+img_RGB = cv2.cvtColor(img_BGR,cv2.COLOR_BGR2RGB)
+img_RGB =img_RGB[180:dim_y,0:dim_x]
 ```
+
+Per prima cosa vengono rilevati i **contorni** della pipeline, pertanto viene rimosso il rumore tramite un _filtro Gaussiano_ specificando la dimensione del kernel e la deviazione rispetto a x e y.
 
 A questo punto e' possibile estrapolare il colore della tubatura dall'immagine ed utilizzarlo al fine di identificarne i **contorni**. In particolare si sceglie il range di valori RGB da voler estrapolare, si crea una maschera che permette di selezionare solo i pixel che siano inclusi in tale range e si effettua un'operazione bitwise and tra l'immagine RGB e la maschera calcolata. In questo modo e' possibile estrapolare il colore blu ed ottenere il risultato riportato in figura.
 
 ![blue_mask](doc/imgs/blue_mask.png)
 
 ```python
-# Creazione della maschera per la tubatura blu
+# Filtro gaussiano
+img_RGB = cv2.GaussianBlur(img_RGB,(5,5),0)
 
+# Creazione della maschera per la tubatura blu
 blue_mask = cv2.inRange(img_RGB_copy,self.blue_lower,self.blue_upper)   
 only_blue = cv2.bitwise_and(img_RGB_copy,img_RGB_copy, mask = blue_mask)     
 ```
@@ -824,8 +822,6 @@ from std_msgs.msg import Bool
 from bluerov2_control.msg import Line_Error
 import math
 
-
-
 class LineDetect:
     def __init__(self):
         rospy.init_node('line_detector')
@@ -899,7 +895,7 @@ class LineDetect:
                     ang = (-90+ang)
             
             # Calcolo dell' errore lineare
-            setpoint = (1920/2)*0.5
+            setpoint = dim_x/2
             error = x_cent-setpoint 
 
             # Inserimento del box pipe
@@ -961,9 +957,6 @@ import rospy
 import math
 import PID
 
-
-
-
 class LineFollower:
     def __init__(self):
         rospy.init_node('line_follower')
@@ -980,10 +973,10 @@ class LineFollower:
         self.e_x = 0
         self.e_theta = 0 
         self.detect = 0 
+        
     # -------   TOPICS   -------
         self.line_error_sub = rospy.Subscriber('/bluerov2/line_error',Line_Error,self.line_error_callback)
         self.vel_ref_pub = rospy.Publisher('/bluerov2/cmd_vel',Twist,queue_size=10)       
-
 
     # -------   LIFE CYCLE   -------
     def loop(self):
@@ -1033,6 +1026,7 @@ class LineFollower:
             v_ref.angular.x = 0.0
             v_ref.angular.y = 0.0
             v_ref.angular.z = 0.0
+
         print("STATE: ")
         print(self.state)
 
@@ -1093,7 +1087,7 @@ Di seguito il codice.
     <!--Start di Gazebo-->
     <include file="$(find uuv_gazebo_worlds)/launch/g.launch"/>
 
-    <!-- Spawn del robot tramite il file upload.launch-->
+    <!-- Visualizzazione del robot tramite il file upload.launch-->
     <include file="$(find bluerov2_description)/launch/upload.launch">
       <arg name="x" value="$(arg x)"/>
       <arg name="y" value="$(arg y)" />
