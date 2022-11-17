@@ -733,7 +733,7 @@ Per prima cosa vengono rilevati i **contorni** della pipeline, pertanto viene ri
 
 A questo punto e' possibile estrapolare il colore della tubatura dall'immagine ed utilizzarlo al fine di identificarne i **contorni**. In particolare si sceglie il range di valori RGB da voler estrapolare, si crea una maschera che permette di selezionare solo i pixel che siano inclusi in tale range e si effettua un'operazione bitwise and tra l'immagine RGB e la maschera calcolata. In questo modo e' possibile estrapolare il colore blu ed ottenere il risultato riportato in figura.
 
-![blue_mask](doc/imgs/blue_mask.png)
+
 
 ```python
 # Filtro gaussiano
@@ -743,6 +743,7 @@ img_RGB = cv2.GaussianBlur(img_RGB,(5,5),0)
 blue_mask = cv2.inRange(img_RGB_copy,self.blue_lower,self.blue_upper)   
 only_blue = cv2.bitwise_and(img_RGB_copy,img_RGB_copy, mask = blue_mask)     
 ```
+![blue_mask](doc/imgs/blue_mask.png)
 
 A questo punto si utilizza l' immagine ricavata per rilevare i contorni della tubatura e tracciare il rettangolo contenente la tubatura. In particolare viene tracciato il rettangolo ad area minima che quindi sara' ruotato di un certo angolo.
 
