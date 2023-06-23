@@ -60,6 +60,7 @@ add_message_files(
   ControlMode.msg
   Autopilot.msg
   Line_Error.msg
+  Pipeline_State.msg
 )
 
 # Generate services in the 'srv' folder

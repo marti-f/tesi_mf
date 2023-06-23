@@ -27,7 +27,7 @@
     </group>
 
     <group if="$(arg use_joystick)">
-        <include file="$(find bluerov2_control)/launch/switch_pro_teleop.launch" ns="bluerov2"/>
+        <include file="$(find bluerov2_control)/launch/f310_teleop.launch" ns="bluerov2"/>
     </group>
     <group unless="$(arg use_joystick)" ns="bluerov2">
         <include file="$(find bluerov2_control)/launch/keyboard_teleop.launch"/>

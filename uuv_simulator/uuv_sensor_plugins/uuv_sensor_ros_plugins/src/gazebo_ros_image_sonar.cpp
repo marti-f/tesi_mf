@@ -655,8 +655,8 @@ cv::Mat GazeboRosImageSonar::ComputeNormalImage(cv::Mat& depth)
                                                  1, 0, -1) / 8;
 
   cv::Mat f1m, f2m;
-  cv::flip(f1, f1m, 0);
-  cv::flip(f2, f2m, 1);
+  cv::flip(f1, f1m, 0); // lungo x
+  cv::flip(f2, f2m, 1); // lungo y
 
   cv::Mat n1, n2;
   cv::filter2D(depth, n1, -1, f1m, cv::Point(-1, -1), 0, cv::BORDER_REPLICATE);

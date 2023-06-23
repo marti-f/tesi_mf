@@ -1,0 +1,147 @@
+<?xml version="1.0"?>
+<!-- Copyright (c) 2016 The UUV Simulator Authors.
+     All rights reserved.
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- Macro for a minimal collision block (for when you do not want collision block but gazebo needs one) -->
+  <xacro:macro name="no_collision">
+    <collision>
+      <geometry>
+        <cylinder length="${0.000001}" radius="${0.000001}" />
+      </geometry>
+      <origin xyz="0 0 0" rpy="0 ${0.5*pi} 0"/>
+    </collision>
+  </xacro:macro>
+
+
+    <!-- MSI Sonar -->
+  <xacro:macro name="msi_sonar" params="namespace parent_link suffix *origin">
+    <xacro:mechanical_scanning_sonar
+      namespace="${namespace}"
+      suffix="${suffix}"
+      parent_link="${parent_link}"
+      mass="0.015"
+      update_rate="2"
+      angle_max="${45*pi/180}"
+      angle_min="${-45*pi/180}"
+      hfov="${3*pi/180}"
+      vfov="${35*pi/180}">
+      <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001" />
+      <xacro:insert_block name="origin" />
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.001 0.001 0.001"/>
+        </geometry>
+      </visual>
+    </xacro:mechanical_scanning_sonar>
+  </xacro:macro>
+
+<!-- Ping360 Scanning Imaging Sonar -->
+<!-- Inspired by -https://bluerobotics.com/store/sensors-sonars-cameras/sonar/ping360-sonar-r1-rp/-->
+
+  <xacro:macro name="ping360_bluerobotics" params="namespace parent_link suffix *origin">
+    <xacro:mechanical_scanning_sonar
+      namespace="${namespace}"
+      suffix="${suffix}"
+      parent_link="${parent_link}"
+      mass="0.0175"
+      update_rate="0.750"
+      angle_max="${40*pi/180}"
+      angle_min="${-40*pi/180}"
+      hfov="${2*pi/180}"
+      vfov="${25*pi/180}">
+      <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001" />
+      <xacro:insert_block name="origin" />
+      <visual>
+        <origin xyz="0 0 0" rpy="0 0 0"/>
+        <geometry>
+          <box size="0.001 0.001 0.001"/>
+        </geometry>
+      </visual>
+    </xacro:mechanical_scanning_sonar>
+  </xacro:macro>
+
+  <!-- MECHANICAL SCANNING IMAGING SONAR MACRO-->
+
+  <xacro:macro name="mechanical_scanning_sonar"
+    params="namespace suffix parent_link mass update_rate angle_max angle_min hfov vfov *inertia *origin *visual">
+    <!-- Mechanical Scanning Imaging sonar link -->
+    <link name="${namespace}/MSI_sonar${suffix}_link">
+      <inertial>
+        <xacro:insert_block name="inertia" />
+        <mass value="${mass}" />
+        <origin xyz="0 0 0" rpy="0 0 0" />
+      </inertial>
+      <visual>
+        <geometry>
+          <mesh filename="file://$(find uuv_sensor_ros_plugins)/meshes/ping-360-bluerobotics.dae" scale="0.001 0.001 0.001"/>
+        </geometry>
+      </visual>
+    <xacro:no_collision/>
+    </link>
+
+    <joint name="${namespace}_MSI_sonar${suffix}_joint" type="continuous">
+    <xacro:insert_block name="origin"/>
+      <parent link="${parent_link}" />
+      <child link="${namespace}/MSI_sonar${suffix}_link" />
+      <axis xyz="0 0 1"/>
+    </joint>
+
+
+    <gazebo reference="${namespace}/MSI_sonar${suffix}_link">
+
+      <sensor name="${namespace}/MSISonar" type="camera">
+    
+        <plugin name="SonarVisual" filename="libMechanicalScanningImagingSonarGazebo.so" >
+          <update_rate>${update_rate}</update_rate>
+          <local_rotation>0 ${1*pi/10} 0</local_rotation>
+          <topic>${namespace}/MSISonar${suffix}</topic>
+          <debug>1</debug>
+          <angle_max>${angle_max}</angle_max>
+          <angle_min>${angle_min}</angle_min>
+          <axis_rotation>2</axis_rotation>
+          <angular_velocity>${10*pi/180}</angular_velocity>
+          <link_reference>${namespace}/MSI_sonar${suffix}_link</link_reference>
+          <hfov>${hfov}</hfov>
+          <vfov>${vfov}</vfov>
+          <bin_count>720</bin_count>
+          <beam_count>1</beam_count>
+          <image>
+            <width>180</width>
+            <height>180</height>
+            <format>R8G8B8</format>
+          </image>
+          <sonar_output>
+            <width>720</width>
+            <height>720</height>
+          </sonar_output>
+          <clip>
+            <near>0.75</near>
+            <far>1.6</far>
+          </clip>
+          <noise>
+            <type>gaussian</type>
+            <mean>0.0</mean>
+            <stddev>0.1</stddev>
+          </noise>
+        </plugin> 
+      </sensor>
+    </gazebo>
+  </xacro:macro>
+
+
+</robot>

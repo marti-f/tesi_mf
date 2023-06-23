@@ -19,7 +19,7 @@
   <arg name="longitude_ref" default="0"/>
   <arg name="altitude_ref" default="0"/>
 
-  <arg name="use_ned_frame" default="true"/>
+  <arg name="use_ned_frame" default="false"/>
 
   <arg name="gazebo_tf" default="true"/>
 

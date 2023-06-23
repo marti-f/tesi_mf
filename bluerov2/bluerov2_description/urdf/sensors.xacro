@@ -23,8 +23,18 @@
 
   <!-- Mount a camera -->
   <xacro:bluerov_camera namespace="" parent_link="${namespace}/base_link" suffix="_front">
-    <origin xyz="0.2 0 0" rpy="0 ${pi/4} 0"/>
+    <origin xyz="0.22 0 0" rpy="0 ${50*pi/180} 0"/>
   </xacro:bluerov_camera>
+
+  <!-- DVL (TODO: aggiustare corrispondenza tra la posizione e i dati del sensore) -->
+  <xacro:teledyne_wayfinder_dvl_macro namespace="${namespace}" parent_link="${namespace}/base_link" inertial_reference_frame="world">
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+  </xacro:teledyne_wayfinder_dvl_macro>
+
+  <!-- Sonar (Ping360 scanning imaging sonar) -->
+  <xacro:ping360_bluerobotics namespace="${namespace}" parent_link="${namespace}/base_link" suffix="_ping360" >
+    <origin xyz="0.22 0 -0.0" rpy="0 ${40*pi/180} 0"/>
+  </xacro:ping360_bluerobotics>
 
   <!-- Mount a GPS. -->
   <xacro:default_gps namespace="${namespace}" parent_link="${namespace}/base_link" />

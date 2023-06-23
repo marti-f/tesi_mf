@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from bluerov2_control.msg import Line_Error 
+from bluerov2_control.msg import Pipeline_State 
 from geometry_msgs.msg import Twist
 import rospy
 import math
@@ -14,89 +14,100 @@ class LineFollower:
         rospy.init_node('line_follower')
         
     # ------- PARAMETERS ------- 
-        self.freq = rospy.get_param('/gazebo/freq', 0.1)
+        self.T = 0.06
+        self.freq = 1/self.T
         self.rate = rospy.Rate(self.freq) 
         
-        self.pid_x = PID.PID(0.00025,0,0,1/self.freq,10)
-        self.pid_theta = PID.PID(0.000413,0,0,1/self.freq,10)
+        self.pid_y = PID.PID(0.00266,0,0,1/self.freq,10)
+        self.pid_theta = PID.PID(0.01,0,0,1/self.freq,10)
 
     # ------- VARIABLES -------
         self.state = 'STOP'
-        self.e_x = 0
-        self.e_theta = 0 
-        self.detect = 0 
+        self.e_horizontal = 0
+        self.e_orientation = 0 
+
+        self.v_ref = Twist()
+        
     # -------   TOPICS   -------
-        self.line_error_sub = rospy.Subscriber('/bluerov2/line_error',Line_Error,self.line_error_callback)
+        self.estimated_state_sub = rospy.Subscriber('/bluerov2/estimated_state',Pipeline_State,self.estimated_state_callback)
         self.vel_ref_pub = rospy.Publisher('/bluerov2/cmd_vel',Twist,queue_size=10)       
 
 
     # -------   LIFE CYCLE   -------
     def loop(self):
-        rospy.spin()
+        while not rospy.is_shutdown():
+             self.vel_ref_pub.publish(self.v_ref)
+             self.rate.sleep()
+
   # -------   CALLBACK   -------
-    def line_error_callback(self, msg):
-        v_ref = Twist()
-        self.e_x = msg.linear
-        self.e_theta = msg.angular
-        self.detect = msg.rect_detected
+    def estimated_state_callback(self, msg):
+        
+        self.e_horizontal = msg.y
+        self.e_orientation = msg.yaw
         self.nextState()
         if self.state == 'STOP':
-            v_ref.linear.x = 0.0
-            v_ref.linear.y = 0.0
-            v_ref.linear.z = 0.0
-            v_ref.angular.x = 0.0
-            v_ref.angular.y = 0.0
-            v_ref.angular.z = 0.0
+            self.v_ref.linear.x = 0.0
+            self.v_ref.linear.y = 0.0
+            self.v_ref.linear.z = 0.0
+            self.v_ref.angular.x = 0.0
+            self.v_ref.angular.y = 0.0
+            self.v_ref.angular.z = 0.0
         if self.state == 'CENTER':
-            v_ref.linear.x = 0.09
-            v_ref.linear.y = 0.0
-            v_ref.linear.z = 0.0
-            v_ref.angular.x = 0.0
-            v_ref.angular.y = 0.0   
-            v_ref.angular.z = (self.pid_x.calculate(self.e_x,0) + self.pid_theta.calculate(self.e_theta,0))
+            self.v_ref.linear.x = 0.05
+            self.v_ref.linear.y = 0.0
+            self.v_ref.linear.z = 0.0
+            self.v_ref.angular.x = 0.0
+            self.v_ref.angular.y = 0.0   
+            self.v_ref.angular.z = (self.pid_y.calculate(self.e_horizontal,0) + self.pid_theta.calculate(self.e_orientation,0))
         if self.state == 'RIGHT':
-            v_ref.linear.x = 0.02
-            v_ref.linear.y = 0.0
-            v_ref.linear.z = 0.0
-            v_ref.angular.x = 0.0
-            v_ref.angular.y = 0.0
-            v_ref.angular.z = (self.pid_x.calculate(self.e_x,0) + self.pid_theta.calculate(self.e_theta,0))
+            self.v_ref.linear.x = 0.01
+            self.v_ref.linear.y = 0.0
+            self.v_ref.linear.z = 0.0
+            self.v_ref.angular.x = 0.0
+            self.v_ref.angular.y = 0.0
+            self.v_ref.angular.z = (self.pid_y.calculate(self.e_horizontal,0) + self.pid_theta.calculate(self.e_orientation,0))
 
         if self.state == 'LEFT':
-            v_ref.linear.x = 0.02
-            v_ref.linear.y = 0.0
-            v_ref.linear.z = 0.0
-            v_ref.angular.x = 0.0
-            v_ref.angular.y = 0.0
-            v_ref.angular.z = (self.pid_x.calculate(self.e_x,0) + self.pid_theta.calculate(self.e_theta,0))
+            self.v_ref.linear.x = 0.01
+            self.v_ref.linear.y = 0.0
+            self.v_ref.linear.z = 0.0
+            self.v_ref.angular.x = 0.0
+            self.v_ref.angular.y = 0.0
+            self.v_ref.angular.z = (self.pid_y.calculate(self.e_horizontal,0) + self.pid_theta.calculate(self.e_orientation,0))
 
         if self.state == 'DISALIGNED':
-            v_ref.linear.x = 0.03
-            v_ref.linear.y = 0.0
-            v_ref.linear.z = 0.0
-            v_ref.angular.x = 0.0
-            v_ref.angular.y = 0.0
-            v_ref.angular.z = 0.0
-        print("STATE: ")
-        print(self.state)
+            self.v_ref.linear.x = 0.02
+            self.v_ref.linear.y = 0.0
+            self.v_ref.linear.z = 0.0
+            self.v_ref.angular.x = 0.0
+            self.v_ref.angular.y = 0.0
+            self.v_ref.angular.z = 0.0
 
-        if not(abs(v_ref.angular.z)<0.3):
-            v_ref.angular.z =(v_ref.angular.z/abs(v_ref.angular.z))*0.3
+        
+        print("STATE: "+ self.state)
+        print('cmd_vel')
+        print('vx = '+str(self.v_ref.linear.x))
+        print('omega_z = '+str(self.v_ref.angular.z))
+        print('ERRORI')
+        print('e_horizontal = '+str(self.e_horizontal))
+        print('e_orientation = '+str(self.e_orientation))
 
-        self.vel_ref_pub.publish(v_ref)
+        if not(abs(self.v_ref.angular.z)<0.3):
+            self.v_ref.angular.z =(self.v_ref.angular.z/abs(self.v_ref.angular.z))*0.3
+
+       
 
 
     def nextState(self):
         # Next State
-        if self.detect:
-            if abs(self.e_x) <= 10.5 and abs(self.e_theta) <= 22:
-                self.state = 'CENTER'
-            elif (self.e_x < -10.5 and (self.e_theta) <= 22) or (abs(self.e_x) <= 10.5 and self.e_theta < -22):
-                self.state = 'LEFT'
-            elif (self.e_x > 10.5 and (self.e_theta) <= 22) or (abs(self.e_x) <=10.5 and self.e_theta > 22):
-                self.state = 'RIGHT'
-            elif (self.e_x > 10.5 and self.e_theta < -22) or (self.e_x < -10.5 and self.e_theta > 22):
-                self.state = 'DISALIGNED'
+        if abs(self.e_horizontal) <= 0.05 and abs(self.e_orientation) <= 2:
+            self.state = 'CENTER'
+        elif (self.e_horizontal < -0.05 and (self.e_orientation) >= 2) or (abs(self.e_horizontal) <= 0.05 and self.e_orientation > -2):
+            self.state = 'LEFT'
+        elif (self.e_horizontal > 0.05 and (self.e_orientation) <= 2) or (abs(self.e_horizontal) <=0.05 and self.e_orientation < 2):
+            self.state = 'RIGHT'
+        elif (self.e_horizontal < -0.05 and self.e_orientation < 2) or (self.e_horizontal > 0.05 and self.e_orientation > -2):
+            self.state = 'DISALIGNED'
         else:
             self.state = 'STOP'
 

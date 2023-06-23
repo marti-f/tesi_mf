@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Nome del robot-->
+    <arg name="model_name" default="bluerov2"/>
+    <!-- Namespace del robot nella simulazione-->
+    <arg name="uuv_name" default="$(arg model_name)"/>
+    <!--Nome del base link-->
+    <arg name="base_link" default="base_link"/>
+
+    <!--Posizione del robot-->
+    <arg name="x" value="47.72"/>   
+    <arg name="y" value="25.43"/>
+    <arg name="z" value="-94.63"/>
+    <arg name="roll" value="0"/>
+    <arg name="pitch" value="0"/>
+    <arg name="yaw" value="-2.84"/>
+    <!--Start di Gazebo-->
+    <include file="$(find uuv_gazebo_worlds)/launch/g.launch"/>
+
+    <!-- Spawn del robot tramite il file upload.launch-->
+    <include file="$(find bluerov2_description)/launch/upload.launch">
+      <arg name="x" value="$(arg x)"/>
+      <arg name="y" value="$(arg y)" />
+      <arg name="z" value="$(arg z)"/>
+      <arg name="roll" value="$(arg roll)"/>
+      <arg name="pitch" value="$(arg pitch)"/>
+      <arg name="yaw" value="$(arg yaw)"/>
+    </include>
+
+    <!--Avvio del thruster manager per la trasformazione TAM-->
+    <include file="$(find bluerov2_control)/launch/start_thruster_manager.launch"/>
+
+    <!-- Processo di identificazione -->
+    <node name ="validazione" pkg="bluerov2_control" type="invio_sinusoide.py"/>
+
+</launch>

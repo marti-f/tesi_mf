@@ -1,0 +1,50 @@
+<?xml version="1.0"?>
+
+<launch>
+  <node pkg="robot_localization" type="ekf_localization_node" name="ekf_localization" clear_params="true">
+    <param name="frequency" value="10"/>
+    <param name="two_d_mode" value="false"/>
+    <param name="transform_time_offset" value="0.0"/>
+    <param name="print_diagnostics" value="true"/>
+
+    <param name="odom_frame" value="odom"/>
+    <param name="base_link_frame" value="bluerov2/base_link"/>
+    <param name="world_frame" value="odom"/>
+
+    <param name="imu0" value="bluerov2/imu"/>
+    <param name="imu0_differential" value="false"/>
+    <param name="imu0_relative" value="true"/>
+    <param name="gravitational_acceleration" value="9.79999998871575"/>
+    <param name="imu0_remove_gravitational_acceleration" value="true"/>
+    <rosparam param="imu0_config">[false, false, false,
+                   true,  true,  true,
+                   false, false, false,
+                   true,  true,  true,
+                   true,  true,  true]</rosparam>
+    <param name="odom0" value="/odometry/gps"/>
+    <rosparam param="odom0_config">[true,  true,  true,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false,
+                   false, false, false]</rosparam>
+    <param name="odom0_differential" value="false"/>
+    <rosparam param="initial_state">[47.72,  25.43, -94.63,
+                                 0.0,  0.0,  -2.84,
+                                 0.0,  0.0,  0.0,
+                                 0.0,  0.0,  0.0,
+                                 0.0,  0.0,  0.0]</rosparam>        
+  </node>
+ 
+  <node pkg="robot_localization" type="navsat_transform_node"
+      name="navsat_transform_node" respawn="true" output="screen">
+    <param name="magnetic_declination_radians" value="0"/>
+    <param name="broadcast_utm_transform" value="false"/>
+    <param name="wait_for_datum" value="true"/>
+  <rosparam param="datum">[47.72, 25.43, -94.63]</rosparam> 
+
+     <!--Inputs-->
+    <remap from="bluerov2/imu" to="imu/data" />
+    <remap from="bluerov2/gps" to="gps/fix" />    
+    </node> 
+
+</launch>

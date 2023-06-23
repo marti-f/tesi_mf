@@ -36,6 +36,14 @@ def ConversionW2B(pose_gt):
     vel_a_body = np.dot(T_1,vel_a_world_array)
 
     vel_body = Odometry()
+    
+    vel_body.header.frame_id = "world_ned"
+    vel_body.header.seq = pose_gt.header.seq
+    vel_body.header.stamp.secs = pose_gt.header.stamp.secs
+    vel_body.header.stamp.nsecs = pose_gt.header.stamp.nsecs
+    vel_body.child_frame_id = "bluerov2/base_link"
+
+
     vel_body.twist.twist.linear.x = vel_l_body[0]
     vel_body.twist.twist.linear.y = vel_l_body[1]
     vel_body.twist.twist.linear.z = vel_l_body[2]
