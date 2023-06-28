@@ -41,6 +41,8 @@ class VelocityPIDController:
         # Velocita` di riferimento
         self.v_ref = Twist()
 
+        self.count = 0
+
     # -------   TOPICS   -------
         #rospy.Subscriber('/bluerov2/pose_body',Odometry,self.read_pose_callback)
         rospy.Subscriber('/bluerov2/dvl',DVL,self.readDVL)
@@ -55,12 +57,20 @@ class VelocityPIDController:
             #  Calcolo dell' azione di controllo 
             input = Wrench()
             
+            # aggiunta del distubo a 200 secondi 1500<=(self.count)<=1900: 2500<=(self.count)<=2900:
+            #if 7300<=(self.count)<=7700:
+            #if 2500<=(self.count)<=2900:
+            #    input.force.y = 73
+            #else: 
+            #    input.force.y = 0
+            
             input.force.x = self.pid_surge.calculate(self.v_meas.x,self.v_ref.linear.x)
             input.force.z = self.pid_heave.calculate(self.v_meas.z,self.v_ref.linear.z)
             input.torque.z = self.pid_yaw.calculate(self.omega_meas.z,self.v_ref.angular.z)
 
             # Pubblicazione del messaggio sul topic
             self.writer_thruster_pub.publish(input)
+            self.count = self.count +1
             self.rate.sleep()
 
   # -------   CALLBACK   -------

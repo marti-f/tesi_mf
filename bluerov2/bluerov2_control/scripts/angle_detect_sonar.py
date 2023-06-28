@@ -6,6 +6,7 @@ from sensor_msgs.msg import Image
 import math
 import numpy as np
 import pywt
+
 from statistics import mean
 from bluerov2_control.msg import Line_Error
 from geometry_msgs.msg import Twist
@@ -14,10 +15,11 @@ class sonar_detect:
     def __init__(self):
         rospy.init_node('angle_sonar_detect')
     # ------- PARAMETERS ------- 
-        self.freq = 10
+        self.freq = 1/0.06
         self.rate = rospy.Rate(self.freq)
         self.bridge = cv_bridge.CvBridge()
         self.counter = 0
+        self.count = 0
         self.counter_1= 0
         self.angle_RT = 0
 
@@ -29,6 +31,8 @@ class sonar_detect:
         self.blue_upper = (255,10,20)
 
         
+
+        
     # -------   TOPICS   -------
         self.sonar_image_sub = rospy.Subscriber('/bluerov2/MSISonar_ping360',Image,self.sonar_image_callback)
         self.error_detect_pub = rospy.Publisher('/bluerov2/line_error_sonar',Line_Error,queue_size=1)
@@ -37,17 +41,40 @@ class sonar_detect:
 
     # -------   LIFE CYCLE   -------
     def loop(self):
-        rospy.spin()
+        while not rospy.is_shutdown():
+             self.count += 1
+             self.rate.sleep()
 
   # -------   CALLBACK   -------
     def sonar_image_callback(self, msg):
        
         sonar_img_CV = self.bridge.imgmsg_to_cv2(msg,desired_encoding='passthrough')
-
+        
         # copia per la conversione in coordinate polari
         sonar_polar = sonar_img_CV.copy()
-
         dim_x,dim_y,channel = sonar_img_CV.shape
+        ###########################################################################
+        #DISTURBO SULL'IMMAGINE
+        #if (1300<=(self.count)<=1500)|(1700<=(self.count)<=1900):
+        #    mean = 1000
+        #    stddev = 10000
+        #    noise = 170*np.ones(sonar_polar.shape, np.uint8)
+            #cv2.randn(noise, mean, stddev)
+        #    im = np.asarray(sonar_polar)
+        #    im[:,:] = (140,255,0)
+            
+            #sonar_polar = cv2.cvtColor(sonar_polar,cv2.COLOR_RGB2)
+            #sonar_polar = cv2.cvtColor(sonar_polar,cv2.COLOR_RGB2HSV)
+        #    sonar_polar = cv2.subtract(sonar_polar, noise)
+        #    sonar_polar = cv2.GaussianBlur(sonar_polar,(51,51),14,14)
+        #else:
+        #    sonar_polar = sonar_polar
+
+        cv2.imshow('sonar polar ',sonar_polar)
+        cv2.waitKey(1)
+
+
+        
         origin =(int(dim_x/2),int(dim_y/2))
 
         # CONVERSIONE DA COORDINATE POLARI A CARTESIANE
@@ -107,8 +134,7 @@ class sonar_detect:
         # Calcolo dei rettangoli contenenti i contorni della pipeline
         #   > Eliminazione dei falsi positivi ( prelevo il rettangolo con il primo vertice piu` in basso)
         #   > eliminazione dei rettangoli con area minore di 50
-        cv2.imshow('maschera ',blue_mask)
-        cv2.waitKey(1)
+        
         if len(contour_blue) > 0:
             corners_blue = []
             if len(contour_blue) == 1:

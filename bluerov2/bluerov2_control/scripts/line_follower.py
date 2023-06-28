@@ -18,8 +18,8 @@ class LineFollower:
         self.freq = 1/self.T
         self.rate = rospy.Rate(self.freq) 
         
-        self.pid_y = PID.PID(0.00266,0,0,1/self.freq,10)
-        self.pid_theta = PID.PID(0.01,0,0,1/self.freq,10)
+        self.pid_y = PID.PID(-0.1,0,0,1/self.freq,10)
+        self.pid_theta = PID.PID(0.014,0,0,1/self.freq,10)
 
     # ------- VARIABLES -------
         self.state = 'STOP'
@@ -53,14 +53,14 @@ class LineFollower:
             self.v_ref.angular.y = 0.0
             self.v_ref.angular.z = 0.0
         if self.state == 'CENTER':
-            self.v_ref.linear.x = 0.05
+            self.v_ref.linear.x = 0.07
             self.v_ref.linear.y = 0.0
             self.v_ref.linear.z = 0.0
             self.v_ref.angular.x = 0.0
             self.v_ref.angular.y = 0.0   
             self.v_ref.angular.z = (self.pid_y.calculate(self.e_horizontal,0) + self.pid_theta.calculate(self.e_orientation,0))
         if self.state == 'RIGHT':
-            self.v_ref.linear.x = 0.01
+            self.v_ref.linear.x = 0.02
             self.v_ref.linear.y = 0.0
             self.v_ref.linear.z = 0.0
             self.v_ref.angular.x = 0.0
@@ -68,7 +68,7 @@ class LineFollower:
             self.v_ref.angular.z = (self.pid_y.calculate(self.e_horizontal,0) + self.pid_theta.calculate(self.e_orientation,0))
 
         if self.state == 'LEFT':
-            self.v_ref.linear.x = 0.01
+            self.v_ref.linear.x = 0.02
             self.v_ref.linear.y = 0.0
             self.v_ref.linear.z = 0.0
             self.v_ref.angular.x = 0.0
@@ -76,7 +76,7 @@ class LineFollower:
             self.v_ref.angular.z = (self.pid_y.calculate(self.e_horizontal,0) + self.pid_theta.calculate(self.e_orientation,0))
 
         if self.state == 'DISALIGNED':
-            self.v_ref.linear.x = 0.02
+            self.v_ref.linear.x = 0.05
             self.v_ref.linear.y = 0.0
             self.v_ref.linear.z = 0.0
             self.v_ref.angular.x = 0.0
@@ -100,13 +100,13 @@ class LineFollower:
 
     def nextState(self):
         # Next State
-        if abs(self.e_horizontal) <= 0.05 and abs(self.e_orientation) <= 2:
+        if abs(self.e_horizontal) <= 0.02 and abs(self.e_orientation) <= 2:
             self.state = 'CENTER'
-        elif (self.e_horizontal < -0.05 and (self.e_orientation) >= 2) or (abs(self.e_horizontal) <= 0.05 and self.e_orientation > -2):
+        elif (self.e_horizontal < -0.02 and (self.e_orientation) >= 2) or (abs(self.e_horizontal) <= 0.02 and self.e_orientation > -2):
             self.state = 'LEFT'
-        elif (self.e_horizontal > 0.05 and (self.e_orientation) <= 2) or (abs(self.e_horizontal) <=0.05 and self.e_orientation < 2):
+        elif (self.e_horizontal > 0.02 and (self.e_orientation) <= 2) or (abs(self.e_horizontal) <=0.02 and self.e_orientation < 2):
             self.state = 'RIGHT'
-        elif (self.e_horizontal < -0.05 and self.e_orientation < 2) or (self.e_horizontal > 0.05 and self.e_orientation > -2):
+        elif (self.e_horizontal < -0.02 and self.e_orientation < 2) or (self.e_horizontal > 0.02 and self.e_orientation > -2):
             self.state = 'DISALIGNED'
         else:
             self.state = 'STOP'

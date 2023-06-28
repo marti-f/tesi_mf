@@ -15,12 +15,13 @@ class LineDetect:
     def __init__(self):
         rospy.init_node('line_detector')
     # ------- PARAMETERS ------- 
-        self.freq = 1/rospy.get_param('/gazebo/time_step', 0.1)
+        self.freq = 1/0.06
         self.rate = rospy.Rate(self.freq)
         self.bridge = cv_bridge.CvBridge()
         self.blue_upper = (255,50,50)
         self.blue_lower = (150,0,0)
         self.angle_cam = 50
+        self.count = 0
 
     # -------   TOPICS   -------
         self.image_sub = rospy.Subscriber('/bluerov2/camera_front/camera_image',Image,self.image_callback)
@@ -30,7 +31,9 @@ class LineDetect:
 
     # -------   LIFE CYCLE   -------
     def loop(self):
-        rospy.spin()
+        while not rospy.is_shutdown():
+             self.count = self.count +1
+             self.rate.sleep()
   # -------   CALLBACK   -------
     def image_callback(self, msg):
 
@@ -48,48 +51,71 @@ class LineDetect:
         #cv2.imshow('Immagine originale',img_RGB)
         #cv2.waitKey(1)
         dim_y = dim_y_new
+        print(self.count)
+        img_show = img_RGB.copy()
 
+        cv2.imshow("image_not_blurred",img_show)
+        cv2.waitKey(1)
 
         # Smussamento dell' immagine tramite filtro Gaussiano
+
+
+        #############################################################################
+        # DISTURBO SULL'IMMAGINE
+        
+        #if (800<=(self.count)<=1000)|(1700<=(self.count)<=1900):
+            # Generate random Gaussian noise
+        #    mean = 1000
+        #    stddev = 10000
+        #    noise = 150*np.ones(img_RGB.shape, np.uint8)
+            #cv2.randn(noise, mean, stddev)
+        #    img_RGB = cv2.subtract(img_RGB, noise)
+        #    img_RGB = cv2.GaussianBlur(img_RGB,(51,51),10)
+        #else:
+        
         img_RGB = cv2.GaussianBlur(img_RGB,(5,5),5)
+        img_show2 =img_RGB.copy()
+        cv2.imshow("image_blurred",img_show2)
+        cv2.waitKey(1)
+
         img_blurred = img_RGB.copy()
         img_RGB_copy = img_RGB.copy()
         
         # Canny Edge Detector
-        ratio = 3
-        kernel_size = 3
-        low_threshold = 80
-        src_gray = cv2.cvtColor(img_blurred,cv2.COLOR_RGB2GRAY)
-        detected_edge = cv2.Canny(src_gray,low_threshold,low_threshold*ratio,kernel_size)
-        mask_canny = detected_edge != 0
-        dst =img_RGB*(mask_canny[:,:,None].astype(img_RGB.dtype))
+        #ratio = 3
+        #kernel_size = 3
+        #low_threshold = 80
+        #src_gray = cv2.cvtColor(img_blurred,cv2.COLOR_RGB2GRAY)
+        #detected_edge = cv2.Canny(src_gray,low_threshold,low_threshold*ratio,kernel_size)
+        #mask_canny = detected_edge != 0
+        #dst =img_RGB*(mask_canny[:,:,None].astype(img_RGB.dtype))
         
 
 
         # Hough Trasformation Image
-        detected_edge_gray = cv2.cvtColor(detected_edge,cv2.COLOR_GRAY2BGR)
-        lines = cv2.HoughLines(detected_edge,1,np.pi/180,360,0,0)
+        #detected_edge_gray = cv2.cvtColor(detected_edge,cv2.COLOR_GRAY2BGR)
+        #lines = cv2.HoughLines(detected_edge,1,np.pi/180,360,0,0)
 
-        if lines is not None:
-            x_avg = 0
-            y_avg = 0
-            for i in range(0,len(lines)):
-                rho = lines[i][0][0]
-                theta = lines[i][0][1]
-                a = math.cos(theta)
-                b = math.sin(theta)
-                x0 = a * rho
-                y0 = b * rho
-                pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
-                pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
-                x_avg = x_avg + x0
-                y_avg = y_avg + y0
-                cv2.line(detected_edge_gray, pt1, pt2, (0,0,255), 1, cv2.LINE_AA)
-            x_avg = x_avg/len(lines)
-            y_avg = y_avg/len(lines)
-            pt1_avg = (int(x_avg + 1000*(-b)), int(y_avg + 1000*(a)))
-            pt2_avg = (int(x_avg - 1000*(-b)), int(y_avg - 1000*(a)))
-            cv2.line(detected_edge_gray, pt1_avg, pt2_avg, (0,255,0), 3, cv2.LINE_AA)
+        #if lines is not None:
+        #    x_avg = 0
+        #    y_avg = 0
+        #    for i in range(0,len(lines)):
+        #        rho = lines[i][0][0]
+        #        theta = lines[i][0][1]
+        #        a = math.cos(theta)
+        #        b = math.sin(theta)
+        #        x0 = a * rho
+        #        y0 = b * rho
+        #        pt1 = (int(x0 + 1000*(-b)), int(y0 + 1000*(a)))
+        #        pt2 = (int(x0 - 1000*(-b)), int(y0 - 1000*(a)))
+        #        x_avg = x_avg + x0
+        #        y_avg = y_avg + y0
+        #        cv2.line(detected_edge_gray, pt1, pt2, (0,0,255), 1, cv2.LINE_AA)
+        #    x_avg = x_avg/len(lines)
+        #    y_avg = y_avg/len(lines)
+        #    pt1_avg = (int(x_avg + 1000*(-b)), int(y_avg + 1000*(a)))
+        #    pt2_avg = (int(x_avg - 1000*(-b)), int(y_avg - 1000*(a)))
+        #    cv2.line(detected_edge_gray, pt1_avg, pt2_avg, (0,255,0), 3, cv2.LINE_AA)
 
 
 
@@ -98,7 +124,9 @@ class LineDetect:
         blue_mask = cv2.inRange(img_RGB_copy,self.blue_lower,self.blue_upper)   
         only_blue = cv2.bitwise_and(img_RGB_copy,img_RGB_copy, mask = blue_mask)
         
-
+        cv2.imshow("image_mask",blue_mask)
+        cv2.waitKey(1)
+        
         # Calcolo dei contorni dell' immagine 
         contour,hierarchy = cv2.findContours(blue_mask.copy(),cv2.RETR_TREE,cv2.CHAIN_APPROX_SIMPLE)
 

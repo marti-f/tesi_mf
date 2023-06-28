@@ -1,0 +1,57 @@
+<?xml version="1.0"?>
+<launch>
+    <!-- Nome del robot-->
+    <arg name="model_name" default="bluerov2"/>
+    <!-- Namespace del robot nella simulazione-->
+    <arg name="uuv_name" default="$(arg model_name)"/>
+    <!--Nome del base link-->
+    <arg name="base_link" default="bluerov2/base_link"/>
+
+    <!--Posizione del robot con errore iniziale
+    <arg name="x" value="47.1"/>   
+    <arg name="y" value="31"/>
+    <arg name="z" value="-94.2"/>
+    <arg name="roll" value="0"/>
+    <arg name="pitch" value="0"/>
+    <arg name="yaw" value="-2.75"/>-->
+    <!--Posizione del robot errore inizale nullo-->
+    <arg name="x" value="-0.0"/>   
+    <arg name="y" value="-1.5"/>
+    <arg name="z" value="-94.2"/>
+    <arg name="roll" value="0"/>
+    <arg name="pitch" value="0"/>
+    <arg name="yaw" value="1.57"/>  <!--0.68-->   
+    <!--Start di Gazebo-->
+    <include file="$(find uuv_gazebo_worlds)/launch/ocean_waves_pipe_curva.launch"/>
+
+    <!-- Spawn del robot tramite il file upload.launch-->
+    <include file="$(find bluerov2_description)/launch/upload.launch">
+      <arg name="x" value="$(arg x)"/>
+      <arg name="y" value="$(arg y)" />
+      <arg name="z" value="$(arg z)"/>
+      <arg name="roll" value="$(arg roll)"/>
+      <arg name="pitch" value="$(arg pitch)"/>
+      <arg name="yaw" value="$(arg yaw)"/>
+    </include>
+
+    <!--Avvio del thruster manager per la trasformazione TAM-->
+    <include file="$(find bluerov2_control)/launch/start_thruster_manager.launch"/>
+
+    <!--Conversione di coordinate dal frame world a body
+    <node name ="world_to_body" pkg="bluerov2_control" type="world_to_body.py"/>-->
+
+    <!-- Controllo di velocita`-->
+    <node name ="velo_PID_controller" pkg="bluerov2_control" type="velocity_pid_controller.py"/>
+
+    <!--Line Detector (CAMERA)-->
+    <node name ="line_detector" pkg="bluerov2_control" type="line_detect.py"/>
+    
+    <!--Line Detector (SONAR)-->      
+    <node name ="angle_detect_sonar" pkg="bluerov2_control" type="angle_detect_sonar.py"/> 
+    
+    <!--Sensor Fusion-->
+    <node name ="sensor_fusion" pkg="bluerov2_control" type="sensor_fusion_kf.py"/> 
+    <!--Line Follower-->
+    <node name ="line_follower" pkg="bluerov2_control" type="line_follower.py"/>
+    
+</launch>

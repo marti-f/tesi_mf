@@ -15,7 +15,7 @@
     <arg name="yaw" value="-2.94"/>
     
     <!--Start di Gazebo-->
-    <include file="$(find uuv_gazebo_worlds)/launch/ocean_waves.launch"/>
+    <include file="$(find uuv_gazebo_worlds)/launch/ocean_waves_pipe_lunga.launch"/>
 
     <!-- Spawn del robot tramite il file upload.launch-->
     <include file="$(find bluerov2_description)/launch/upload.launch">
@@ -29,5 +29,6 @@
 
     <!--Avvio del thruster manager per la trasformazione TAM-->
     <include file="$(find bluerov2_control)/launch/start_thruster_manager.launch"/>
+    
 
 </launch>
